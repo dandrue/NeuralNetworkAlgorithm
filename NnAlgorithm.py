@@ -2,6 +2,19 @@ import numpy as np
 import pandas as pd
 import random
 
+"""
+This file contains the core of the Neural Network Algorithm. Its constructed following the multilayer architecture
+
+* Still in construction
+"""
+
+
+# TODO Add a cross validation feature
+# TODO Add different activation functions
+# TODO Add different cost functions,
+#  now the algorithm implement the squared difference, in the future it will implement the cost for logistic
+#  regression adding regularization, etc
+
 
 def sigmoid(z):
     """
@@ -25,18 +38,20 @@ class Network(object):
         self.sizes = sizes
         # The weight values were initialized
         # On Machine Learning course by Harvard the weights were named "theta"
-        self.weights = [np.random.randn(y, x+1) for x, y in zip(sizes[:-1], sizes[1:])]
+        self.weights = [np.random.randn(y, x) for x, y in zip(sizes[:-1], sizes[1:])]
         # print(self.weights)
         a = pd.DataFrame(self.weights)
         print(len(a[0][0]))
 
     def feedforward(self, a):
+        # TODO convert this function to a matrix function
         # feedforward propagation
         for w in self.weights:
             a = sigmoid(np.dot(w, a))
         return a
 
     def gradient_descent(self, train_data, epochs, mini_batch_size, eta, test_data=None):
+        # TODO Implement the gradient descent as matrix operation, only conserve the for loop to the epochs iteration
         training_data = list(train_data)
         n = len(training_data)
         training_data[0] = np.ones(n)
@@ -68,6 +83,7 @@ class Network(object):
                 print("Epoch {} complete".format(j))
 
     def update_mini_batch(self, mini_batch, eta):
+        # TODO Update the weights matrix deleting the for loop
         delta_w = [np.zeros(w.shape) for w in self.weights]
         for x, y in mini_batch:
             nabla_w = self.backpropagation(x, y)
@@ -75,6 +91,7 @@ class Network(object):
         self.weights = [w - (eta / len(mini_batch)) * nw for w, nw in zip(self.weights, delta_w)]
 
     def backpropagation(self, x, y):
+        # TODO Delete the for loops, implement matrix operations!!!
         delta_w = [np.zeros(w.shape) for w in self.weights]
 
         activation = x
