@@ -22,9 +22,6 @@ class Network(object):
         # Se inicializan los pesos de conexiones entre neuronas con valores random
         # Los pesos en el curso de Harvard en coursera son los llamados theta
         self.weights = [np.random.randn(y, x+1) for x, y in zip(sizes[:-1], sizes[1:])]
-        print(self.weights)
-        A = pd.DataFrame(self.weights)
-        print(A.loc[0,0])
 
     def feedforward(self, a):
         # Propagación hacia adelante, se calcula la activación utilizando la función sigmoide
