@@ -1,5 +1,4 @@
 import numpy as np
-import pandas as pd
 import random
 
 """
@@ -35,31 +34,27 @@ class Network(object):
         # Sizes, list with the number of neurons of each layer
         # The number of layers is defined by the size of the "sizes" list
         self.num_layers = len(sizes)
-        self.sizes = sizes
+        # Like in the Harvard course, the activations were modified to add the
+        # column of ones at the beginning of the array.
+        self.sizes = [sizes[x] + 1 if x < len(sizes) - 1 else sizes[x]
+                      for x in range(len(sizes))]
         # The weight values were initialized
         # On Machine Learning course by Harvard the weights were named "theta"
-        self.weights = [np.random.randn(y, x) for x, y in zip(sizes[:-1], sizes[1:])]
-        # print(self.weights)
-        a = pd.DataFrame(self.weights)
-        print(len(a[0][0]))
+        self.weights = [np.random.randn(y, x)
+                        for x, y in zip(self.sizes[:-1], self.sizes[1:])]
 
     def feedforward(self, a):
-        # TODO convert this function to a matrix function
+        # Matrix function
         # feedforward propagation
         for w in self.weights:
             a = sigmoid(np.dot(w, a))
         return a
 
     def gradient_descent(self, train_data, epochs, mini_batch_size, eta, test_data=None):
-        # TODO Implement the gradient descent as matrix operation, only conserve the for loop to the epochs iteration
+        # TODO Implement the gradient descent as matrix operation,
+        #  only conserve the for loop to the epochs iteration
         training_data = list(train_data)
         n = len(training_data)
-        training_data[0] = np.ones(n)
-        for i in training_data[0:1]:
-            print(len(i[0]))
-            print(i[0])
-            print(len(i[1]))
-            print(i[1])
 
         if test_data:
             test_data = list(test_data)
@@ -69,10 +64,9 @@ class Network(object):
 
         for j in range(epochs):
             random.shuffle(training_data)
-            mini_batches = [training_data[k:k + mini_batch_size] for k in range(0, n, mini_batch_size)]
+            mini_batches = [training_data[k:k + mini_batch_size]
+                            for k in range(0, n, mini_batch_size)]
             for mini_batch in mini_batches:
-                # print(mini_batch)
-                # break
                 self.update_mini_batch(mini_batch, eta)
             if test_data:
                 print("Epoch {} : {}% - {}/{}".format(j,
@@ -85,23 +79,27 @@ class Network(object):
     def update_mini_batch(self, mini_batch, eta):
         # TODO Update the weights matrix deleting the for loop
         delta_w = [np.zeros(w.shape) for w in self.weights]
-        for x, y in mini_batch:
-            nabla_w = self.backpropagation(x, y)
-            delta_w = [nw + dnw for nw, dnw in zip(delta_w, nabla_w)]
-        self.weights = [w - (eta / len(mini_batch)) * nw for w, nw in zip(self.weights, delta_w)]
+        x_train, y_train = zip(*mini_batch)
+        x_train = np.array(x_train)
+        x_train = x_train.reshape(-1, len(x_train[-1]))
+        y_train = np.array(y_train)
+        nabla_w = self.backpropagation(x_train, y_train)
+        delta_w = [nw + dnw for nw, dnw in zip(delta_w, nabla_w)]
+        self.weights = [w - (eta / len(mini_batch)) * nw
+                        for w, nw in zip(self.weights, delta_w)]
 
     def backpropagation(self, x, y):
         # TODO Delete the for loops, implement matrix operations!!!
         delta_w = [np.zeros(w.shape) for w in self.weights]
-
         activation = x
-
-        activations = [x]
-
+        print(len(activation[0]))
+        activations = [activation]
         zs = []
 
         for w in self.weights:
-            z = np.dot(w, activation)
+            z = []
+            for i in range(len(activation[1])):
+                z.append(np.dot(w.transpose(), activation[:,i]))
             zs.append(z)
             activation = sigmoid(z)
             activations.append(activation)
