@@ -1,15 +1,18 @@
 import numpy as np
 import random
-import pandas as pd
 
+# todo Switch the language from Spanish to English
 # Se define la función de activación y la derivada de la función de activación
+
 def sigmoid(z):
     sig = 1.0/(1.0+np.exp(-z))
     return sig
 
+
 def sigmoid_prime(z):
     sig_prime = sigmoid(z)*(1-sigmoid(z))
     return sig_prime
+
 
 class Network(object):
     def __init__(self, sizes):
@@ -29,10 +32,11 @@ class Network(object):
             a = sigmoid(np.dot(w, a)+b)
         return a
 
-    def SGD(self, train_data, epochs, mini_batch_size, eta, test_data=None):
+    def sgd(self, train_data, epochs, mini_batch_size, eta, test_data=None):
         # Algoritmo para el descenso estocástico del gradiente
         training_data = list(train_data)
         n = len(training_data)
+        n_test = 0
 
         if test_data:
             test_data = list(test_data)
@@ -46,7 +50,8 @@ class Network(object):
             for mini_batch in mini_batches:
                 self.update_mini_batch(mini_batch, eta)
             if test_data:
-                print("Epoch {} : {}% - {}/{}".format(j, self.evaluate(test_data)*100/n_test, self.evaluate(test_data), n_test))
+                print("Epoch {} : {}% - {}/{}".format(j, self.evaluate(test_data)*100/n_test, self.evaluate(test_data),
+                                                      n_test))
             else:
                 print("Epoch {} complete".format(j))
 
@@ -55,7 +60,7 @@ class Network(object):
         nabla_w = [np.zeros(w.shape) for w in self.weights]
         for x, y in mini_batch:
             # print(x)
-            delta_nabla_b, delta_nabla_w = self.backprop(x,y)
+            delta_nabla_b, delta_nabla_w = self.backprop(x, y)
             nabla_b = [nb+dnb for nb, dnb in zip(nabla_b, delta_nabla_b)]
             nabla_w = [nw+dnw for nw, dnw in zip(nabla_w, delta_nabla_w)]
         self.weights = [w-(eta/len(mini_batch))*nw for w, nw in zip(self.weights, nabla_w)]
@@ -78,22 +83,23 @@ class Network(object):
             activation = sigmoid(z)
             activations.append(activation)
 
-        delta = self.cost_derivative(activations[-1],y) * sigmoid_prime(zs[-1])
+        delta = self.cost_derivative(activations[-1], y) * sigmoid_prime(zs[-1])
         # print(delta)
         nabla_b[-1] = delta
         nabla_w[-1] = np.dot(delta, activations[-2].transpose())
 
-        for l in range(2,self.num_layers):
-            z = zs[-l]
+        for i in range(2, self.num_layers):
+            z = zs[-i]
             sp = sigmoid_prime(z)
-            delta = np.dot(self.weights[-l+1].transpose(), delta) * sp
-            nabla_b[-l] = delta
-            nabla_w[-l] = np.dot(delta, activations[-l-1].transpose())
+            delta = np.dot(self.weights[-i+1].transpose(), delta) * sp
+            nabla_b[-i] = delta
+            nabla_w[-i] = np.dot(delta, activations[-i-1].transpose())
         return nabla_b, nabla_w
 
     def evaluate(self, test_data):
-        test_results = [(np.argmax(self.feedforward(x)), y) for (x,y) in test_data]
-        return sum(int(x == y) for (x,y) in test_results)
+        test_results = [(np.argmax(self.feedforward(x)), y) for (x, y) in test_data]
+        return sum(int(x == y) for (x, y) in test_results)
 
-    def cost_derivative(self, output_activations, y):
+    @staticmethod
+    def cost_derivative(output_activations, y):
         return output_activations-y
