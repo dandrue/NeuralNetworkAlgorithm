@@ -30,89 +30,81 @@ def sigmoid_prime(z):
 
 class Network(object):
     def __init__(self, sizes):
-        # TODO Make all computations as matrix operations
-        # Sizes, list with the number of neurons of each layer
-        # The number of layers is defined by the size of the "sizes" list
         self.num_layers = len(sizes)
-        # Like in the Harvard course, the activations were modified to add the
-        # column of ones at the beginning of the array.
-        self.sizes = [sizes[x] + 1 if x < len(sizes) - 1 else sizes[x]
-                      for x in range(len(sizes))]
-        # The weight values were initialized
-        # On Machine Learning course by Harvard the weights were named "theta"
-        self.weights = [np.random.randn(y, x)
-                        for x, y in zip(self.sizes[:-1], self.sizes[1:])]
+        self.sizes = sizes
+        self.weights = [np.random.randn(y , x + 1) for x, y in zip(sizes[:-1], sizes[1:])]
+        # self.weights.append(np.random.randn(sizes[-1], sizes[-2]+1))
+        print(self.weights[0].shape, self.weights[1].shape, self.weights[2].shape)
 
     def feedforward(self, a):
-        # Matrix function
-        # feedforward propagation
         for w in self.weights:
             a = sigmoid(np.dot(w, a))
         return a
 
     def gradient_descent(self, train_data, epochs, mini_batch_size, eta, test_data=None):
-        # TODO Implement the gradient descent as matrix operation,
-        #  only conserve the for loop to the epochs iteration
         training_data = list(train_data)
         n = len(training_data)
+        n_test = 0
+        # print(training_data[0][0], training_data[0][0].shape)
 
         if test_data:
             test_data = list(test_data)
             n_test = len(test_data)
-        else:
-            n_test = 0
 
         for j in range(epochs):
             random.shuffle(training_data)
-            mini_batches = [training_data[k:k + mini_batch_size]
-                            for k in range(0, n, mini_batch_size)]
+            mini_batches = [training_data[k:k+mini_batch_size] for k in range(0, n, mini_batch_size)]
             for mini_batch in mini_batches:
                 self.update_mini_batch(mini_batch, eta)
             if test_data:
-                print("Epoch {} : {}% - {}/{}".format(j,
-                                                      self.evaluate(test_data) * 100 / n_test,
-                                                      self.evaluate(test_data),
+                print("Epoch {} : {}% - {}/{}".format(j, self.evaluate(test_data)*100/n_test, self.evaluate(test_data),
                                                       n_test))
             else:
                 print("Epoch {} complete".format(j))
 
     def update_mini_batch(self, mini_batch, eta):
-        # TODO Update the weights matrix deleting the for loop
-        delta_w = [np.zeros(w.shape) for w in self.weights]
-        x_train, y_train = zip(*mini_batch)
-        x_train = np.array(x_train)
-        x_train = x_train.reshape(-1, len(x_train[-1]))
-        y_train = np.array(y_train)
-        nabla_w = self.backpropagation(x_train, y_train)
-        delta_w = [nw + dnw for nw, dnw in zip(delta_w, nabla_w)]
-        self.weights = [w - (eta / len(mini_batch)) * nw
-                        for w, nw in zip(self.weights, delta_w)]
+        nabla_w = [np.zeros(w.shape) for w in self.weights]
+        for x, y in mini_batch:
+            delta_nabla_w = self.backprop(x, y)
+            nabla_w = [nw+dnw for nw, dnw in zip(nabla_w, delta_nabla_w)]
+        self.weights = [w-(eta/len(mini_batch))*nw for w, nw in zip(self.weights, nabla_w)]
 
-    def backpropagation(self, x, y):
-        # TODO Delete the for loops, implement matrix operations!!!
-        delta_w = [np.zeros(w.shape) for w in self.weights]
+    def backprop(self, x, y):
+        nabla_w = [np.zeros(w.shape) for w in self.weights]
         activation = x
-        print(len(activation[0]))
-        activations = [activation]
+        activations = [x]
+
         zs = []
 
         for w in self.weights:
-            z = []
-            for i in range(len(activation[1])):
-                z.append(np.dot(w.transpose(), activation[:,i]))
+            if len(activations) != 1:
+                activation = np.insert(activation,0,1.0, axis=0)
+            print(w.shape, activation.shape)
+            z = np.dot(w, activation)
+            print(',')
+            print(z.shape)
             zs.append(z)
             activation = sigmoid(z)
+            # print(activation)
             activations.append(activation)
+        for z in zs:
+            print(z.shape)
+        # print(activations[-1])
+        delta = self.cost_derivative(activations[-1], y)
+        print(delta.shape)
+        nabla_w[-1] = np.dot(delta, activations[-2].transpose())
 
-        delta = self.cost_derivative(activations[-1], y) * sigmoid_prime(zs[-1])
-        delta_w[-1] = np.dot(delta, activations[-2].transpose())
-
-        for layer in range(2, self.num_layers):
-            z = zs[-layer]
+        for i in range(2, self.num_layers):
+            print(delta.shape)
+            # print(i)
+            z = zs[-i]
             sp = sigmoid_prime(z)
-            delta = np.dot(self.weights[-layer + 1].transpose(), delta) * sp
-            delta_w[-layer] = np.dot(delta, activations[-layer - 1].transpose())
-        return delta_w
+            print(self.weights[-i+1].shape)
+            print(sp.shape)
+            delta = np.dot(self.weights[-i+1].transpose()[1:], delta) * sp
+            # print(delta.shape)
+            nabla_w[-i] = np.dot(delta, activations[-i-1].transpose())
+        return nabla_w
 
     def evaluate(self, test_data):
         test_results = [(np.argmax(self.feedforward(x)), y) for (x, y) in test_data]
@@ -120,4 +112,4 @@ class Network(object):
 
     @staticmethod
     def cost_derivative(output_activations, y):
-        return output_activations - y
+        return output_activations-y
