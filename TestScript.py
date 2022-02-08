@@ -11,9 +11,17 @@ each one with 784 inputs and 10 outputs
 
 # Splitting the data into training, validation and testing. Using the mnist_loader
 training_data, validation_data, test_data = mnist_loader.load_data_wrapper()
-net = NN_core.Network([784, 30, 30, 10])
-net.sgd(training_data, 10, 10, 3.0, test_data=test_data)
-t1 = time.time()
+training_data = list(training_data)
+validation_data = list(validation_data)
+test_data = list(test_data)
+print(len(training_data))
+print(len(validation_data))
+print(len(test_data))
+print(len(training_data) + len(validation_data) + len(test_data))
 
-to = t1 - t0
-print(to)
+# net = NN_core.Network([784, 30, 30, 10])
+# net.sgd(training_data, 10, 10, 3.0, test_data=test_data)
+# t1 = time.time()
+
+# to = t1 - t0
+# print(to)

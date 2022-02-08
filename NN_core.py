@@ -70,14 +70,12 @@ class Network(object):
         # nabla bias and nabla weights matrices are initialized with zero values
         nabla_b = [np.zeros(b.shape) for b in self.biases]
         nabla_w = [np.zeros(w.shape) for w in self.weights]
-
         # The input is the initial array x
         activation = x
         # "Activations" contains the activation of each layer, it's a list of lists.
         activations = [x]
         # "zs" is a list to save the "z" value of each layer
         zs = []
-
         # Computing the forward propagation
         for b, w in zip(self.biases, self.weights):
             z = np.dot(w, activation)+b

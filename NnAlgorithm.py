@@ -10,7 +10,7 @@ This file contains the core of the Neural Network Algorithm. Its constructed fol
 
 def sigmoid(z):
     """
-    Activation function, it would be ReLu or any other activation function
+    Activation function, it would be sigmoid function, ReLu or any other activation function
     """
     sig = 1.0 / (1.0 + np.exp(-z))
     return sig
